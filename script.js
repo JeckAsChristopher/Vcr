@@ -4,7 +4,7 @@ if (!localStorage.getItem("vc_token")) {
   throw new Error("Unauthorized access blocked.");
 }
 
-const socket = io("https://shipped-interface-litigation-roof.trycloudflare.com"); // Change to your server if deployed
+const socket = io("https://shipped-interface-litigation-roof.trycloudflare.com");
 const localVideo = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
 const statusText = document.getElementById("status");
@@ -14,12 +14,13 @@ let remoteStream;
 let peerConnection;
 let isMuted = false;
 let otherUserId = null;
+let tracksAdded = false;
 
 const rtcConfig = {
   iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
 };
 
-// Step 1: Get user media and join matchmaking
+// Step 1: Get media and emit matchmaking request
 navigator.mediaDevices.getUserMedia({ video: true, audio: true })
   .then(stream => {
     localStream = stream;
@@ -32,15 +33,15 @@ navigator.mediaDevices.getUserMedia({ video: true, audio: true })
     alert("Camera/microphone access is required.");
   });
 
-// Step 2: Matched with another user
+// Step 2: On peer found, initiate or wait for offer
 socket.on("call-found", (otherID) => {
   otherUserId = otherID;
   statusText.innerText = "Connected to random peer!";
   createPeerConnection();
 
-  // Offerer logic: only one sends offer
+  // Offerer logic
   if (socket.id < otherID) {
-    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+    addLocalTracksOnce();
     peerConnection.createOffer().then(offer => {
       peerConnection.setLocalDescription(offer);
       socket.emit("signal", { to: otherUserId, data: { offer } });
@@ -48,17 +49,15 @@ socket.on("call-found", (otherID) => {
   }
 });
 
-// Step 3: Signaling handling
+// Step 3: Handle signaling
 socket.on("signal", async ({ from, data }) => {
   otherUserId = from;
 
-  if (!peerConnection) {
-    createPeerConnection();
-  }
+  if (!peerConnection) createPeerConnection();
 
   if (data.offer) {
     await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
-    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+    addLocalTracksOnce();
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
     socket.emit("signal", { to: from, data: { answer } });
@@ -69,11 +68,24 @@ socket.on("signal", async ({ from, data }) => {
   }
 
   if (data.candidate) {
-    await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+    try {
+      await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+    } catch (e) {
+      console.error("Error adding received ICE candidate", e);
+    }
   }
 });
 
-// Step 4: Create peer connection
+// Add tracks only once
+function addLocalTracksOnce() {
+  if (tracksAdded || !peerConnection || !localStream) return;
+  localStream.getTracks().forEach(track => {
+    peerConnection.addTrack(track, localStream);
+  });
+  tracksAdded = true;
+}
+
+// Step 4: Peer connection setup
 function createPeerConnection() {
   peerConnection = new RTCPeerConnection(rtcConfig);
 
@@ -102,21 +114,17 @@ function createPeerConnection() {
   };
 }
 
-// Step 5: Toggle mute
+// Step 5: Mute toggle with label update
 function toggleMute() {
   isMuted = !isMuted;
-
-  // Enable or disable audio tracks
   localStream.getAudioTracks().forEach(track => {
     track.enabled = !isMuted;
   });
-
-  // Update button label
   const btn = document.getElementById("muteButton");
-  btn.textContent = isMuted ? "Unmute" : "Mute";
+  if (btn) btn.textContent = isMuted ? "Unmute" : "Mute";
 }
 
-// Step 6: End the call
+// Step 6: End call and clean up
 function endCall() {
   if (peerConnection) {
     peerConnection.close();
@@ -136,6 +144,6 @@ function endCall() {
   }, 1000);
 }
 
-// Make buttons usable from HTML
+// Make global for buttons
 window.toggleMute = toggleMute;
 window.endCall = endCall;
