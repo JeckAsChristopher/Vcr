@@ -140,7 +140,7 @@ function endCall() {
   if (statusText) statusText.innerText = "Call ended.";
 
   setTimeout(() => {
-    location.href = "/vcr/index.html";
+    location.href = "/Vcr/index.html";
   }, 1000);
 }
 
