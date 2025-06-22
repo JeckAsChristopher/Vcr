@@ -1,0 +1,73 @@
+/* Reset & Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+body {
+  background-color: #1e1e2f;
+  color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Status Text */
+#status {
+  margin-bottom: 20px;
+  font-size: 20px;
+  color: #aad8ff;
+}
+
+/* Video Layout */
+video {
+  width: 90%;
+  max-width: 500px;
+  height: auto;
+  border-radius: 12px;
+  margin: 10px 0;
+  background: #000;
+  object-fit: cover;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+}
+
+/* General Button Style */
+button {
+  background-color: #3a8ee6;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  z-index: 10;
+}
+
+/* Hover Effect */
+button:hover {
+  background-color: #3275c7;
+}
+
+/* Position Buttons Bottom Corners */
+#muteButton {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+}
+
+button[onclick="endCall()"] {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background-color: #e53e3e;
+}
+
+button[onclick="endCall()"]:hover {
+  background-color: #c53030;
+}

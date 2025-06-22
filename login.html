@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>VC App</title>
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+  <div class="login-container">
+    <h1>🎧 VC Login</h1>
+    <input id="username" placeholder="Username" />
+    <input id="password" type="password" placeholder="Password" />
+    <div class="btn-group">
+      <button onclick="signup()">Signup</button>
+      <button onclick="login()">Login</button>
+    </div>
+  </div>
+
+  <script>
+    async function signup() {
+      const res = await fetch("https://shipped-interface-litigation-roof.trycloudflare.com/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: document.getElementById("username").value,
+          password: document.getElementById("password").value,
+        }),
+      });
+
+      if (res.ok) {
+        alert("Signup successful!");
+        login(); // auto-login after signup
+      } else {
+        alert(await res.text());
+      }
+    }
+
+    async function login() {
+      const res = await fetch("https://shipped-interface-litigation-roof.trycloudflare.com/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: document.getElementById("username").value,
+          password: document.getElementById("password").value,
+        }),
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        localStorage.setItem("vc_token", result.token); // save token for auth check
+        location.href = "index.html"; // redirect to index with auth
+      } else {
+        alert("Login failed");
+      }
+    }
+  </script>
+</body>
+</html>

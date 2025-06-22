@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>VC Call</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h2 id="status">Finding random calls...</h2>
+  <video id="localVideo" autoplay muted></video>
+  <video id="remoteVideo" autoplay></video>
+  <button onclick="endCall()">End</button>
+  <button id="muteButton" onclick="toggleMute()">Mute</button>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
